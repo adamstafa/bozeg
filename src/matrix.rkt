@@ -23,14 +23,16 @@
 (define (matrix-map proc . matrices)
   (apply map (lambda rows (apply map proc rows)) matrices))
 
+(define matrix->list-of-lists identity)
+
+(define list-of-lists->matrix identity)
+
 (define (matrix->list matrix)
   (foldr append '() matrix))
 
 (define (list->matrix rows cols list)
   (build-matrix rows cols (lambda (row col)
                             (list-ref list (+ (* row rows) col)))))
-
-(define literal->matrix identity)
 
 (define (matrix-print matrix)
   (for-each (lambda (row) (for-each (lambda (el) (display el) (display " ")) row) (newline)) matrix))
