@@ -52,8 +52,8 @@
         [(equal? alive-neighbors 3) alive]
         [else dead]))
 
-(define (next-cell-state matrix row col)
-  (define neighbors (get-neighborhood-stitch-edges matrix row col))
+(define (next-cell-state neighborhood-proc matrix row col)
+  (define neighbors (neighborhood-proc matrix row col))
   (define alive-neighbors (alive-neighbors-count neighbors))
   (define current-state (matrix-ref matrix row col))
   (next-cell-state-from-numbers current-state alive-neighbors))
@@ -66,7 +66,7 @@
     (build-board
      rows cols
      (lambda (row col)
-       (next-cell-state matrix row col)))))
+       (next-cell-state neighborhood-proc matrix row col)))))
 
 (define next-iteration-stitch-edges (next-iteration get-neighborhood-stitch-edges))
 
