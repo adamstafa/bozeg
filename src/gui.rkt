@@ -3,6 +3,7 @@
 (require racket/gui/base)
 
 (define board-rows 30)
+
 (define board-cols 50)
 
 (define board null)
@@ -37,7 +38,9 @@
   (send canvas draw-board board))
 
 (define (set-board new-board)
+  (define matrix (board->matrix new-board))
   (set! board new-board)
+  (board-size-changed (matrix-rows matrix) (matrix-cols matrix))
   (show-board board))
 
 (define (save)
@@ -53,6 +56,24 @@
     (define in (open-input-file file))
     (set-board (read in))
     (close-input-port in)))
+
+(define (new-board rows cols)
+  (set-board (build-board rows cols (lambda (row col) dead))))
+
+(define (board-size-changed rows cols)
+  (set! board-rows rows)
+  (set! board-cols cols)
+  (send input-rows set-value (number->string rows))
+  (send input-cols set-value (number->string cols)))
+
+(define (board-size-change-requested)
+  (define (size-ok? size)
+    (and (positive-integer? size)
+         (<= size 400)))
+  (define rows (string->number (send input-rows get-value)))
+  (define cols (string->number (send input-cols get-value)))
+  (when (and (size-ok? rows) (size-ok? cols))
+    (new-board rows cols)))
 
 (define frame (new frame%
                    [label "BOŽEG"]
@@ -118,6 +139,20 @@
                          [label "Load"]
                          [callback (lambda (b e) (stop) (load))]))
 
-(set-board (build-board board-rows board-cols (lambda (row col) dead)))
+(define input-cols (new text-field%
+                        [parent controls-pane]
+                        [label "Width"]
+                        [stretchable-width #f]
+                        [min-width 80]
+                        [callback (lambda (t e) (board-size-change-requested))]))
+
+(define input-rows (new text-field%
+                        [parent controls-pane]
+                        [label "Height"]
+                        [stretchable-width #f]
+                        [min-width 80]
+                        [callback (lambda (t e) (board-size-change-requested))]))
+
+(new-board board-rows board-cols)
 
 (send frame show #t)
