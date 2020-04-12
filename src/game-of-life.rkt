@@ -7,6 +7,24 @@
 
 (define matrix->board identity)
 
+(define (board-map proc board)
+  (matrix->board (matrix-map proc (board->matrix board))))
+
+(define (board-map-indexes proc board)
+  (define matrix (board->matrix board))
+  (define rows (matrix-rows matrix))
+  (define cols (matrix-cols matrix))
+  (build-board rows cols (lambda (row col)
+                           (proc (matrix-ref matrix row col) row col))))
+
+(define (board-for-each board proc)
+  (define matrix (board->matrix board))
+  (define rows (matrix-rows matrix))
+  (define cols (matrix-cols matrix))
+  (for ([row (range rows)])
+    (for ([col (range cols)])
+      (proc row col (matrix-ref matrix row col)))))
+
 (define alive 'alive)
 
 (define dead 'dead)
@@ -21,11 +39,11 @@
   (lambda (el)
     (matrix-slice
      (lambda (matrix row col)
-       (let ([rows (matrix-rows matrix)]
-             [cols (matrix-cols matrix)])
-         (if (and (>= row 0) (< row rows) (>= col 0) (< col cols))
-             (matrix-ref matrix row col)
-             el))))))
+       (define rows (matrix-rows matrix))
+       (define cols (matrix-cols matrix))
+       (if (and (>= row 0) (< row rows) (>= col 0) (< col cols))
+           (matrix-ref matrix row col)
+           el)))))
 
 (define matrix-slice-stitch-edges
   (matrix-slice
@@ -48,8 +66,8 @@
      (state->number (matrix-ref slice 1 1))))
 
 (define (next-cell-state-from-numbers current-state alive-neighbors)
-  (cond [(equal? alive-neighbors 2) current-state]
-        [(equal? alive-neighbors 3) alive]
+  (cond [(= alive-neighbors 2) current-state]
+        [(= alive-neighbors 3) alive]
         [else dead]))
 
 (define (next-cell-state neighborhood-proc matrix row col)
@@ -75,6 +93,9 @@
 (provide build-board
          board->matrix
          matrix->board
+         board-map
+         board-map-indexes
+         board-for-each
          alive
          dead
          next-iteration-stitch-edges
